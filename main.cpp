@@ -3,6 +3,16 @@
 #include <string.h>
 #include <arpa/inet.h>
 
+#define FIN 0x01
+#define SYN 0x02
+#define RST 0x04
+#define PUSH 0x18
+#define ACK 0x10
+#define URG 0x20
+#define ECE 0x40
+#define CWR 0x80
+
+
 struct etherheader{
 	unsigned char srcmac[6];
 	unsigned char dstmac[6];
@@ -37,7 +47,9 @@ struct tcp_header{
 	u_short dst_port;
 	unsigned char seqnum[4];
 	unsigned char dstnum[4];
-	unsigned char flag[2];
+  u_char offx2;
+  #define TH_OFF(th) (((th)->th_offx2 & 0xf0) >> 4)
+	u_char flag;
 	unsigned char windowsize[2];
 	unsigned char checksum[2];
 	unsigned char urgent_pointer[2];
@@ -49,6 +61,11 @@ struct udp_header{
 	uint16_t checksum;
 };
 
+struct tcp_option_t{
+
+  uint8_t kind;
+  uint8_t size;
+};
 
 void usage() {
   printf("syntax: pcap_test <interface>\n");
@@ -65,6 +82,9 @@ int main(int argc, char* argv[]) {
   char errbuf[PCAP_ERRBUF_SIZE];
   uint16_t iptype;
   int iplength;
+  uint16_t mss;
+  int t_option_check;
+  char dataset[16];
   pcap_t* handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
   if (handle == NULL) {
     fprintf(stderr, "couldn't open device %s: %s\n", dev, errbuf);
@@ -78,7 +98,14 @@ int main(int argc, char* argv[]) {
     int res = pcap_next_ex(handle, &header, &packet);
     if (res == 0) continue;
     if (res == -1 || res == -2) break;
+    unsigned int test=( header -> caplen);
+    /*
+    for(int j=0; j<test; j++)
+    {
 
+      printf("%x", ntohs(packet[j]));
+    }
+    */
     struct etherheader *eth =(struct etherheader*)packet;
     packet += sizeof(etherheader);
     printf("#----------------------------------------------------------------------#\n");
@@ -111,7 +138,80 @@ int main(int argc, char* argv[]) {
                   	printf("Src port: %d\n", ntohs(tcp->src_port));
                   	printf("dst port: %d\n", ntohs(tcp->dst_port));
               	    printf("length :  %d\n", iplength-34);
+                    //printf("tcp flag: %d\n", ntohs(tcp->flag));
+                    printf("flag :");
+                    if(tcp->flag & FIN){
+                      printf(" FIN");
+                    }
+                    if(tcp->flag & SYN){
+                      t_option_check+=2;
+                      printf(" SYN");
+                    }
+                    if(tcp->flag & RST){
+                      printf(" RST");
+                    }
+                    if(tcp->flag & PUSH){
+                      printf(" PUSH");
+                    }
+                    if(tcp->flag & ACK){
+                      t_option_check+=10;
+                      printf(" ACK");
+                    }
+                    if(tcp->flag & URG){
+                      printf(" URG");
+                    }
+                    if(tcp->flag & ECE){
+                      printf(" ECE");
+                    }
+                    if(tcp->flag & CWR){
+                      printf(" CWR  ");
+                    }
+                    if(t_option_check!=0)
+                    {
+                      
+                      if(t_option_check==2)
+                      {
+                        printf("option length : ");
+                        packet+=20;
+                        printf("20 bytes");
+                      }
+                      if(t_option_check==12)
+                      {
+                        printf("option length : ");
+                        packet+=4;
+                        printf("4 bytes");
+                      }
+                      t_option_check=0;
+                      printf("\n");
+                      //16bytes
+                      printf("yes options\n"); 
+                      
+                    
+                      
+                    }
+                    else
+                    {
+                      printf("no options\n"); 
+                      
+                    /*
+                    while( *opt !=0){
+                      tcp_option_t* t_opt = (tcp_option_t*)opt;
+                      if(t_opt->kind== 1)
+                      {
+                        ++opt;
+                        continue;
+                      }
+
+                      if(t_opt->kind==2){
+                        mss = ntohs((uint16_t)*(opt + sizeof(opt)));
+                      }
+                      opt += t_opt->size;
+                    }
+                    printf("mss %s\n", mss);
+                    printf("opt what %x\n", opt);|
+                    */
                   }
+                }
                   if((iptype)==17){
               	    printf("\t\t\t [transport layer : udp]\n");
               //	printf("-----------------------------------------------------------------------\n");
@@ -136,13 +236,17 @@ int main(int argc, char* argv[]) {
   }
     
     
-    unsigned int test=( header -> caplen);
-    /* 
-    for(int j=0; j<test; j++)
+    
+ 
+    printf("\n%d bytes captured\n", header->caplen);
+
+    printf("data 16bytes :");
+    for(int j=0; j<16; j++)
     {
-	    printf("%x ", packet[j]);
-    }*/
-    printf("%d bytes captured\n", header->caplen);
+
+      printf("%x", ntohs(packet[j]));
+    }
+    printf("\n");
     printf("#----------------------------------------------------------------------#\n");	
 	  
   }
