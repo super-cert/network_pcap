@@ -12,12 +12,17 @@
 #define ECE 0x40
 #define CWR 0x80
 
+//flag 선언 
 
-struct etherheader{
+
+//이더넷 헤더
+struct etherheader{  
 	unsigned char srcmac[6];
 	unsigned char dstmac[6];
 	uint16_t type;
 };
+
+//ip header
 struct ip_header{
 	unsigned char version[1];
 	unsigned char SerField[1];
@@ -30,6 +35,8 @@ struct ip_header{
 	unsigned char dstip[4];
 	unsigned char srcip[4];
 };
+
+//arp header
 struct arp_header{
 	//28bytes
   uint16_t type;
@@ -42,6 +49,9 @@ struct arp_header{
   unsigned char dstmac[6];
   unsigned char dstip[4];
 };
+
+//tcp_header
+
 struct tcp_header{
 	u_short src_port;
 	u_short dst_port;
@@ -54,6 +64,8 @@ struct tcp_header{
 	unsigned char checksum[2];
 	unsigned char urgent_pointer[2];
 };
+
+//udp_header
 struct udp_header{
 	uint16_t src_port;
 	uint16_t dst_port;
@@ -99,14 +111,7 @@ int main(int argc, char* argv[]) {
     if (res == 0) continue;
     if (res == -1 || res == -2) break;
     unsigned int test=( header -> caplen);
-    /*
-    for(int j=0; j<test; j++)
-    {
-
-      printf("%x", ntohs(packet[j]));
-    }
-    */
-    struct etherheader *eth =(struct etherheader*)packet;
+    struct etherheader *eth =(struct etherheader*)packet; //ethernet 구조체 삽입
     packet += sizeof(etherheader);
     printf("#----------------------------------------------------------------------#\n");
     printf("\t\t\t [datalink layer : ethernet type]\n");
@@ -118,7 +123,7 @@ int main(int argc, char* argv[]) {
     if(ntohs(eth->type)==0x800){
     //printf("#----------------------------------------------------------------------#\n");	
 	  printf("\t\t\t [network layer : ipv4 type]\n");
-  	struct ip_header *ip = (struct ip_header*)packet;
+  	struct ip_header *ip = (struct ip_header*)packet; //ipv4 구조체 삽입
     packet+= sizeof(ip_header);
     printf("srcip : %d.%d.%d.%d\n", ip->srcip[0],ip->srcip[1],ip->srcip[2],ip->srcip[3]);
   	printf("dstip : %d.%d.%d.%d\n", ip->dstip[0],ip->dstip[1],ip->dstip[2],ip->dstip[3]);
@@ -130,8 +135,8 @@ int main(int argc, char* argv[]) {
     iplength=(ip->length[0] << 8) +ip->length[1];
     printf("ip length : %d\n", (iplength));
     
-    printf("iptype : %d\n",(iptype));
-                  if((iptype)==6){
+    printf("iptype : %d\n",(iptype)); 
+                  if((iptype)==6){    //tcp, udp 구분
               	printf("\t\t\t [transport layer : tcp]\n");
               	//printf("-----------------------------------------------------------------------\n");
                   	struct tcp_header *tcp = (struct tcp_header*)packet;
@@ -201,7 +206,6 @@ int main(int argc, char* argv[]) {
                         ++opt;
                         continue;
                       }
-
                       if(t_opt->kind==2){
                         mss = ntohs((uint16_t)*(opt + sizeof(opt)));
                       }
@@ -212,7 +216,7 @@ int main(int argc, char* argv[]) {
                     */
                   }
                 }
-                  if((iptype)==17){
+                  if((iptype)==17){ //udp확인
               	    printf("\t\t\t [transport layer : udp]\n");
               //	printf("-----------------------------------------------------------------------\n");
                   	
@@ -222,7 +226,7 @@ int main(int argc, char* argv[]) {
                   	printf("length :  %d\n", ntohs(udp->length));
                 }
 }
-    if(ntohs(eth->type)==0x806){              
+    if(ntohs(eth->type)==0x806){              //arp프로토콜 확인
     printf("\t\t\t [network layer : arp type]\n");
     struct arp_header *arp = (struct arp_header*)packet;
     packet+= sizeof(ip_header);
@@ -238,9 +242,9 @@ int main(int argc, char* argv[]) {
     
     
  
-    printf("\n%d bytes captured\n", header->caplen);
+    printf("\n%d bytes captured\n", header->caplen);  //총 패킷 길이
 
-    printf("data 16bytes :");
+    printf("data 16bytes :"); //옵션 이후 data 16bytes
     for(int j=0; j<16; j++)
     {
 
