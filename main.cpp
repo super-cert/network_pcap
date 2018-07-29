@@ -17,8 +17,8 @@
 
 //이더넷 헤더
 struct etherheader{  
-  unsigned char srcmac[6];
   unsigned char dstmac[6];
+  unsigned char srcmac[6];
   uint16_t type;
 };
 
