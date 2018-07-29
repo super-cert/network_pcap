@@ -168,11 +168,10 @@ int main(int argc, char* argv[]) {
     printf("\t\t\t [network layer : arp type]\n");
     struct arp_header *arp = (struct arp_header*)packet;
     printf("hardware type: %02d", htons(arp->type)); 
-
-    printf("proto : %02d", (arp->proto));
-    printf("hardsize : %d", arp->hardsize);
-    printf("prosize : %d ", arp->prosize);
-    printf("opcode : %02d", htons(arp->opcode));
+    //printf("proto : %02d", (arp->proto));
+    //printf("hardsize : %d", arp->hardsize);
+    //printf("prosize : %d ", arp->prosize);
+    //printf("opcode : %02d", htons(arp->opcode));
     printf("srcmac : %02x:%02x:%02x:%02x:%02x:%02x\n", arp->srcmac[0],arp->srcmac[1],arp->srcmac[2],arp->srcmac[3],arp->srcmac[4],arp->srcmac[5]);
     printf("srcip : %d.%d.%d.%d\n", arp->srcip[0],arp->srcip[1],arp->srcip[2],arp->srcip[3]);
     printf("dstmac : %02x:%02x:%02x:%02x:%02x:%02x\n", arp->dstmac[0],arp->dstmac[1],arp->dstmac[2],arp->dstmac[3],arp->dstmac[4],arp->dstmac[5]);
