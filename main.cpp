@@ -111,6 +111,7 @@ int main(int argc, char* argv[]) {
     if (res == 0) continue;
     if (res == -1 || res == -2) break;
     unsigned int test=( header -> caplen);
+    
     struct etherheader *eth =(struct etherheader*)packet; //ethernet 구조체 삽입
     
     printf("#----------------------------------------------------------------------#\n");
@@ -132,6 +133,7 @@ int main(int argc, char* argv[]) {
     
     printf("version %d\n", (ip->version) >> 4);
     iplength = (ip->version) & 0x0f;
+    printf("test\n");
     printf("length : %d\n", iplength*4);
     printf("iptype : %d\n",(iptype)); 
     iptype = ip->proto[0];
@@ -165,10 +167,15 @@ int main(int argc, char* argv[]) {
     else if(ntohs(eth->type)==0x806){              //arp프로토콜 확인
     printf("\t\t\t [network layer : arp type]\n");
     struct arp_header *arp = (struct arp_header*)packet;
-    
-    printf("srcmac : %02x:%02x:%02x:%02x:%02x:%02x\n", arp->srcmac[0],arp->srcmac[1],arp->srcmac[2],eth->srcmac[3],eth->srcmac[4],eth->srcmac[5]);
+    printf("hardware type: %02d", htons(arp->type)); 
+
+    printf("proto : %02d", (arp->proto));
+    printf("hardsize : %d", arp->hardsize);
+    printf("prosize : %d ", arp->prosize);
+    printf("opcode : %02d", htons(arp->opcode));
+    printf("srcmac : %02x:%02x:%02x:%02x:%02x:%02x\n", arp->srcmac[0],arp->srcmac[1],arp->srcmac[2],arp->srcmac[3],arp->srcmac[4],arp->srcmac[5]);
     printf("srcip : %d.%d.%d.%d\n", arp->srcip[0],arp->srcip[1],arp->srcip[2],arp->srcip[3]);
-    printf("dstmac : %02x:%02x:%02x:%02x:%02x:%02x\n", eth->dstmac[0],eth->dstmac[1],eth->dstmac[2],eth->dstmac[3],eth->dstmac[4],eth->dstmac[5]);
+    printf("dstmac : %02x:%02x:%02x:%02x:%02x:%02x\n", arp->dstmac[0],arp->dstmac[1],arp->dstmac[2],arp->dstmac[3],arp->dstmac[4],arp->dstmac[5]);
     printf("dstip : %d.%d.%d.%d\n", arp->dstip[0],arp->dstip[1],arp->dstip[2],arp->dstip[3]);
     packet +=sizeof(arp_header);
   }
@@ -176,8 +183,11 @@ int main(int argc, char* argv[]) {
     printf("\n%d bytes captured\n", header->caplen);  //총 패킷 길이
 
     printf("data 16bytes :"); //옵션 이후 data 16bytes
+    
+	printf("\n");
     for(int j=0; j<16; j++)
     {
+      
       printf("%c", (packet[j]));
     }
     printf("\n");
